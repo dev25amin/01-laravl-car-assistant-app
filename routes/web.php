@@ -41,7 +41,7 @@ Route::get('/analysis/{id}', [CarAssistantController::class, 'showAnalysis'])->n
 
 // حذف تحليل
 Route::delete('/analysis/{id}', [CarAssistantController::class, 'deleteAnalysis'])->name('analysis.delete');
-
+Route::post('/quick-image-analysis', [CarAssistantController::class, 'quickImageAnalysis'])->name('quick.image.analysis');
 
 });
 

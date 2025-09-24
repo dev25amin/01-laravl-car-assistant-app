@@ -507,27 +507,7 @@
                                     </div>
                                 @endif
 
-                                <!-- معاينة سريعة للنتيجة -->
-                                <div class="text-gray-700">
-                                    <p class="line-clamp-3">
-                                        {{ Str::limit($analysis->analysis_result, 200) }}
-                                    </p>
-                                </div>
 
-                                <!-- معلومات إضافية -->
-                                @if($analysis->analysis_type == 'problem_diagnosis')
-                                    @php
-                                        $inputData = json_decode($analysis->input_data, true);
-                                    @endphp
-                                    @if(isset($inputData['problem_description']))
-                                        <div class="mt-3 p-3 bg-gray-100 rounded-lg">
-                                            <div class="text-sm font-medium text-gray-700 mb-1">وصف المشكلة:</div>
-                                            <div class="text-sm text-gray-600">
-                                                {{ Str::limit($inputData['problem_description'], 150) }}
-                                            </div>
-                                        </div>
-                                    @endif
-                                @endif
                             </div>
                             <!-- الأزرار -->
                             <div class="flex gap-x-2 mr-4">

@@ -189,16 +189,6 @@
                 </div>
             </div>
 
-            <!-- البيانات المدخلة (للمطورين) -->
-            @if(config('app.debug'))
-                <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
-                    <h3 class="section-title font-semibold mb-4">البيانات المدخلة (وضع التطوير)</h3>
-                    <div class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto">
-                        <pre class="text-sm">{{ json_encode(json_decode($analysis->input_data, true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                    </div>
-                </div>
-            @endif
-
             <!-- الإجراءات -->
             <div class="bg-white rounded-lg shadow-lg p-6 card-hover">
                 <h3 class="section-title font-semibold mb-4">إجراءات إضافية</h3>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <title>@yield('title', 'مساعد السيارة الذكي')</title>
+    <title>@yield('title', 'مكانيكي السيارة الذكي')</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -64,11 +64,11 @@
             <!-- الشعار -->
             <div class="flex items-center">
                 <a href="{{ route('car.assistant') }}" class="flex items-center space-x-3 space-x-reverse">
-                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-car text-white text-lg"></i>
+                    <div style="margin: 10px" class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-car text-white text-lg" ></i>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold text-gray-800">مساعد السيارة</h1>
+                        <h1 class="text-xl font-bold text-gray-800">مكانيكي السيارة</h1>
                     </div>
                 </a>
             </div>
@@ -77,20 +77,20 @@
             <div class="hidden md:flex items-center space-x-6 space-x-reverse">
                 <a href="{{ route('car.assistant') }}" 
                    class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition duration-200 {{ request()->routeIs('car.assistant') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100' }}">
-                    <i class="fas fa-home ml-2"></i>
+                    <i class="fas fa-home ml-2"  style="margin: 10px"></i>
                     الرئيسية
                 </a>
                 <a href="{{ route('analysis.history') }}" 
                    class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition duration-200 {{ request()->routeIs('analysis.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100' }}">
-                    <i class="fas fa-history ml-2"></i>
+                    <i class="fas fa-history ml-2"  style="margin: 10px"></i>
                     سجل التحليلات
                 </a>
 
                 <!-- زر المستخدم -->
                 <div class="relative">
+
                     <button id="user-menu-button" class="flex items-center space-x-2 space-x-reverse text-gray-700 hover:text-blue-600 focus:outline-none">
-                         <i class="fas fa-user-circle text-2xl"> </i> 
-                        <span> {{ auth()->user()->name }} </span> 
+                         <i class="fas fa-user text-2xl" style="margin: 10px"> </i><span> {{ auth()->user()->name }} </span>  
                         <i class="fas fa-caret-down ml-1"> </i>
                     </button>
 
@@ -103,13 +103,13 @@
                         </form>
                     </div>
                 </div>
+                
             </div>
 
             <!-- زر القائمة للموبايل -->
             <div class="md:hidden flex items-center space-x-2 space-x-reverse">
                 <!-- زر المستخدم للموبايل -->
                 <button id="mobile-user-menu-button" class="text-gray-700 hover:text-blue-600 focus:outline-none">
-                    <i class="fas fa-user-circle text-2xl"></i>
                 </button>
                 <button id="mobile-menu-button" class="text-gray-700 hover:text-blue-600 focus:outline-none">
                     <i class="fas fa-bars text-xl"></i>
@@ -170,12 +170,7 @@
             <main>
                 {{ $slot }}
             </main>
-    
-    <footer class="bg-gray-100 mt-8">
-        <div class="container mx-auto px-4 py-8 text-sm text-gray-600">
-            © {{ date('Y') }} مساعد السيارة الذكي. جميع الحقوق محفوظة.
-        </div>
-    </footer>
+
     
     <script>
         // القائمة المنسدلة للموبايل

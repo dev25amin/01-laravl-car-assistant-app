@@ -681,4 +681,157 @@ class CarAssistantController extends Controller
             ]);
         }
     }
+
+
+    /**
+ * تحليل الصورة السريع باستخدام Gemini Vision API
+ */
+public function quickImageAnalysis(Request $request)
+{
+    $userId = Auth::id();
+    
+    $requestId = md5(time() . $userId);
+    $cacheKey = 'quick_analysis_' . $userId . '_' . $requestId;
+    
+    if (Cache::has($cacheKey)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'الطلب قيد المعالجة، يرجى الانتظار'
+        ], 429);
+    }
+    
+    Cache::put($cacheKey, true, 60);
+
+    try {
+        $validatedData = $request->validate([
+            'quick_image' => 'required|image|mimes:jpeg,jpg,png,gif|max:5120',
+        ]);
+
+        $result = DB::transaction(function () use ($validatedData, $cacheKey, $userId) {
+            $imagePath = $validatedData['quick_image']->store('quick_analysis', 'public');
+            $fullPath = storage_path('app/public/' . $imagePath);
+
+            // تحليل الصورة باستخدام Gemini Vision API
+            $analysisResult = $this->analyzeCarImage($fullPath);
+
+            // حفظ التحليل
+            $carInfo = CarInfo::where('user_id', $userId)->first();
+            $carInfoId = $carInfo ? $carInfo->id : null;
+
+            $inputData = [
+                'analysis_type' => 'quick_image_analysis',
+                'image_path' => $imagePath,
+                'timestamp' => now()->format('Y-m-d H:i:s')
+            ];
+
+            $analysisId = $this->saveAnalysisOnce(
+                $userId,
+                $carInfoId,
+                'quick_image_analysis',
+                $inputData,
+                $analysisResult,
+                [$imagePath]
+            );
+
+            Cache::forget($cacheKey);
+
+            return [
+                'analysis' => $analysisResult,
+                'image_path' => $imagePath,
+                'analysisId' => $analysisId
+            ];
+        }, 3);
+
+        return response()->json([
+            'success' => true,
+            'analysis' => $result['analysis'],
+            'image_path' => $result['image_path']
+        ]);
+
+    } catch (\Exception $e) {
+        Cache::forget($cacheKey);
+        Log::error('خطأ في التحليل السريع للصورة: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'حدث خطأ في تحليل الصورة'
+        ], 500);
+    }
+}
+
+/**
+ * تحليل صورة السيارة باستخدام Gemini Vision API
+ */
+private function analyzeCarImage($imagePath)
+{
+    try {
+        $prompt = $this->buildQuickAnalysisPrompt();
+        
+        $imageData = base64_encode(file_get_contents($imagePath));
+        $mimeType = mime_content_type($imagePath);
+
+        $response = Http::timeout(60)->post($this->geminiApiUrl . '?key=' . $this->geminiApiKey, [
+            'contents' => [
+                [
+                    'parts' => [
+                        [
+                            'text' => $prompt
+                        ],
+                        [
+                            'inline_data' => [
+                                'mime_type' => $mimeType,
+                                'data' => $imageData
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'generationConfig' => [
+                'temperature' => 0.3,
+                'topK' => 20,
+                'topP' => 0.8,
+                'maxOutputTokens' => 1024,
+            ]
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                return $data['candidates'][0]['content']['parts'][0]['text'];
+            }
+        }
+
+        Log::error('Gemini API Response Error: ' . $response->body());
+        return 'عذراً، حدث خطأ في تحليل الصورة. يرجى المحاولة مرة أخرى.';
+
+    } catch (\Exception $e) {
+        Log::error('خطأ في تحليل صورة السيارة: ' . $e->getMessage());
+        return 'حدث خطأ في تحليل الصورة، يرجى المحاولة مرة أخرى.';
+    }
+}
+
+/**
+ * بناء النص لتحليل الصورة السريع
+ */
+private function buildQuickAnalysisPrompt()
+{
+    return "أنت خبير في السيارات والتعرف على المركبات. قم بتحليل الصورة المرفوعة وأجب باللغة العربية فقط.
+
+من خلال الصورة، قم بتقديم المعلومات التالية بدقة:
+
+1. **نوع المركبة** (سيارة - شاحنة - دراجة نارية - إلخ)
+2. **العلامة التجارية** (الماركة)
+3. **الموديل** 
+4. **سنة الصنع التقريبية**
+5. **الحالة الظاهرية** من خلال الصورة:
+   - الحالة الخارجية (جيدة - متوسطة - سيئة)
+   - أي أضرار مرئية
+   - التآكل الظاهر
+6. **التقييم الميكانيكي الأولي** بناءً على المظهر الخارجي
+7. **ملاحظات عامة** عن المركبة
+
+إذا لم تتمكن من التعرف على عنصر معين، اذكر ذلك بوضوح.
+
+اجعل إجابتك منظمة وواضحة، مع استخدام العناوين لكل قسم.";
+}
 }
